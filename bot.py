@@ -32,6 +32,18 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text(WELCOME)
 
 
+async def save_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    last = context.user_data.get("last_sticker")
+    if not last:
+        await update.message.reply_text("Нет сохранённого стикера. Сначала отправь фото.")
+        return
+    await update.message.reply_document(
+        document=last,
+        filename="sticker.webp",
+        caption="Последний стикер",
+    )
+
+
 async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = update.message
     status = await message.reply_text("Обрабатываю изображение…")
@@ -50,10 +62,11 @@ async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         size_kb = len(result) / 1024
 
         await status.delete()
+        context.user_data["last_sticker"] = result
         await message.reply_document(
             document=result,
             filename="sticker.webp",
-            caption=f"Готово! {size_kb:.0f} КБ · 512×512 · прозрачный фон",
+            caption=f"Готово! {size_kb:.0f} КБ · 512×512 · прозрачный фон\n/save — скачать ещё раз",
         )
     except ValueError as exc:
         await status.edit_text(str(exc))
@@ -70,6 +83,7 @@ def main() -> None:
     app = Application.builder().token(token).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
+    app.add_handler(CommandHandler("save", save_command))
     app.add_handler(MessageHandler(filters.PHOTO | filters.Document.IMAGE, handle_image))
 
     logger.info("Bot started")
