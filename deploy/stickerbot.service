@@ -1,0 +1,15 @@
+[Unit]
+Description=Telegram Sticker Bot
+After=network.target
+
+[Service]
+Type=simple
+User=stickerbot
+WorkingDirectory=/opt/stickerbot
+EnvironmentFile=/opt/stickerbot/.env
+ExecStart=/opt/stickerbot/venv/bin/python bot.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
