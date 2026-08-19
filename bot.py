@@ -54,8 +54,10 @@ async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     status = await message.reply_text("Обрабатываю изображение…")
 
     try:
+        sent_as_photo = False
         if message.photo:
             file = await message.photo[-1].get_file()
+            sent_as_photo = True
         elif message.document and message.document.mime_type and message.document.mime_type.startswith("image/"):
             file = await message.document.get_file()
         else:
@@ -68,10 +70,11 @@ async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
         await status.delete()
         context.user_data["last_sticker"] = result
+        tip = "\n💡 Для лучшего качества отправляй как файл (скрепка → документ)" if sent_as_photo else ""
         await message.reply_document(
             document=result,
             filename="sticker.webp",
-            caption=f"Готово! {size_kb:.0f} КБ · 512×512 · прозрачный фон\n/save — скачать ещё раз",
+            caption=f"Готово! {size_kb:.0f} КБ · 512×512 · прозрачный фон\n/save — скачать PNG{tip}",
         )
     except ValueError as exc:
         await status.edit_text(str(exc))

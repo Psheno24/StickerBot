@@ -123,12 +123,13 @@ def process_sticker_image(image_bytes: bytes) -> bytes:
     image = Image.open(BytesIO(image_bytes)).convert("RGBA")
 
     if _has_green_background(image):
-        # Chroma key approach for green backgrounds (ChatGPT style)
         image = _chroma_key_remove(image)
     else:
-        # General AI-based background removal
         no_bg = remove(image_bytes)
         image = Image.open(BytesIO(no_bg)).convert("RGBA")
 
+    # Sharpen after downscale to preserve detail
     sticker = _fit_on_canvas(image, TARGET_SIZE)
+    sticker = sticker.filter(ImageFilter.UnsharpMask(radius=1.0, percent=80, threshold=2))
+
     return _save_webp_under_limit(sticker, MAX_SIZE_KB * 1024)
