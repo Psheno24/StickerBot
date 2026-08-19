@@ -37,10 +37,15 @@ async def save_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     if not last:
         await update.message.reply_text("Нет сохранённого стикера. Сначала отправь фото.")
         return
-    await update.message.reply_document(
-        document=last,
-        filename="sticker.webp",
-        caption="Последний стикер",
+    from PIL import Image
+    from io import BytesIO
+    img = Image.open(BytesIO(last)).convert("RGBA")
+    buf = BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    await update.message.reply_photo(
+        photo=buf.getvalue(),
+        caption="Сохрани это фото на телефон 👆",
     )
 
 
